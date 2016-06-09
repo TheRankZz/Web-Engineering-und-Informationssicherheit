@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Webservice - Gruppe 1</title>
+    <link href="/Content/bootstrap.min.css" rel="stylesheet" />
+	<meta charset="utf-8" />
+</head>
+<body>
+    <div class="container">
+        <h2>Webservice <small>Gruppe 1</small></h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th colspan="2">API</th>
+                    <th>Beschreibung</th>
+                </tr>
+            </thead>
+            <tr>
+                <td style="width:50px;"><span class="label label-warning">POST</span></td>
+                <td>/{user}</td>
+                <td>Einen neuen Benutzer registrieren</td>
+            </tr>
+            <tr>
+                <td style="width:50px;"><span class="label label-success">GET</span></td>
+                <td>/{user}</td>
+                <td>Einen Benutzer holen</td>
+            </tr>
+            <tr>
+                <td style="width:50px;"><span class="label label-success">GET</span></td>
+                <td>/{user}/publickey</td>
+                <td>Einen öffentlichen Schlüssel vom Benutzer holen</td>
+            </tr>
+            <tr>
+                <td style="width:50px;"><span class="label label-danger">DELETE</span></td>
+                <td>/{user}</td>
+                <td>Einen Benutzer löschen</td>
+            </tr>
+            <tr>
+                <td style="width:50px;"><span class="label label-warning">POST</span></td>
+                <td>/{user}/message</td>
+                <td>Eine Nachricht verschicken</td>
+            </tr>
+            <tr>
+                <td style="width:50px;"><span class="label label-success">GET</span></td>
+                <td>/{user}/message</td>
+                <td>Eine Nachricht vom Benutzer holen</td>
+            </tr>
+        </table>
+
+    </div>
+</body>
+</html>

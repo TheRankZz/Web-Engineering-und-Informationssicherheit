@@ -20,7 +20,7 @@ namespace Client_WPF
         private BusinessLogic()
         {
             client = new HttpClient();
-            client.BaseAddress = new Uri("http://10.60.70.15/");
+            client.BaseAddress = new Uri("http://localhost:50208/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
@@ -174,13 +174,16 @@ namespace Client_WPF
             inner_envelope.cipher = Convert.ToBase64String(msg_enc);
             inner_envelope.iv = Convert.ToBase64String(iv);
             inner_envelope.key_recipient_enc = Convert.ToBase64String(key_recipient_enc);
-            inner_envelope.sig_recipient = null;
+
+            EncryptLogic.signInnerEnvelope(inner_envelope, user.privatekey);
+
 
             Models.SendMessageRequest request = new Models.SendMessageRequest();
             request.inner_envelope = inner_envelope;
             request.receiver = receiver;
             request.timestamp =Convert.ToString(Util.UnixTimeNow());
-            request.sig_service = null;
+
+            EncryptLogic.signOuterEnvelope(request, user.privatekey);
 
             HttpResponseMessage response = await client.PostAsJsonAsync("/" + user.Username + "/message", request);
 
@@ -197,16 +200,22 @@ namespace Client_WPF
         /// <returns>Nachricht(ViewMessage)</returns>
         public async Task<Models.ViewMessage> getMessage()
         {
-
             var request = new Models.GetMessageRequest();
-            request.dig_sig = null;
             request.timestamp = Convert.ToString(Util.UnixTimeNow());
+
+            EncryptLogic.signGetMessageRequest(request, user.Username, user.privatekey);
 
 
             HttpResponseMessage response = await client.PatchAsJsonAsync("/" + user.Username + "/message", request);
             if (response.IsSuccessStatusCode)
             {
                 Models.Message msg_response = await response.Content.ReadAsAsync<Models.Message>();
+
+
+                string publickey = await getPublicKeyFromUser(msg_response.sender);
+                if (!EncryptLogic.verfiyInnerEnvelope(msg_response, publickey)) {
+                    throw new Exception("Die Nachricht ist nicht verifiziert.");
+                }
 
                 //IV 
                 byte[] iv = Convert.FromBase64String(msg_response.iv);

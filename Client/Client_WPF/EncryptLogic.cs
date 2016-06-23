@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -235,7 +236,6 @@ namespace Client_WPF
                     }
                 }
             }
-
             return encrypted;
         }
 
@@ -251,6 +251,105 @@ namespace Client_WPF
                 key = myAes.Key;
                 IV = myAes.IV;
             }
+        }
+
+
+        /// <summary>
+        /// Signieren des Inhaltes
+        /// </summary>
+        /// <param name="content">Inhalt</param>
+        /// <param name="privateKey">Privater Schlüssel</param>
+        /// <returns>Signatur(base64)</returns>
+        private static string createSign(string content, string privateKey)
+        {
+            var privKey = deserializeRSAKey(privateKey);
+
+            byte[] signedBytes;
+            using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
+            {
+                byte[] data = Util.GetBytes(content);
+
+                try
+                {
+                    rsa.ImportParameters(privKey);
+                    signedBytes = rsa.SignData(data, "SHA256");
+                    return Convert.ToBase64String(signedBytes);
+                }
+                catch (CryptographicException e)
+                {
+                    Debug.Fail(e.Message);
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Signieren des inneren Umschlages
+        /// </summary>
+        /// <param name="inner_envelope">Innere Umschlag</param>
+        /// <param name="privateKey">Privater Schlüssel</param>
+        public static void signInnerEnvelope(Models.Message inner_envelope, string privateKey)
+        {
+            string content = inner_envelope.cipher + inner_envelope.iv
+                + inner_envelope.key_recipient_enc + inner_envelope.sender;
+
+            inner_envelope.sig_recipient = createSign(content, privateKey);
+        }
+
+        /// <summary>
+        /// Signieren des äußeren Umschlages
+        /// </summary>
+        /// <param name="outer_envelope">äußer Umschlag</param>
+        /// <param name="privateKey">Privater Schlüssel</param>
+        public static void signOuterEnvelope(Models.SendMessageRequest outer_envelope, string privateKey)
+        {
+            string content_inner = outer_envelope.inner_envelope.cipher + outer_envelope.inner_envelope.iv
+                + outer_envelope.inner_envelope.key_recipient_enc + outer_envelope.inner_envelope.sender;
+
+            string content = content_inner + outer_envelope.timestamp + outer_envelope.receiver;
+
+            outer_envelope.sig_service = createSign(content, privateKey);
+        }
+
+
+        public static void signGetMessageRequest(Models.GetMessageRequest request, string username, string privateKey)
+        {
+            string content = username + request.timestamp;
+
+            request.dig_sig = createSign(content, privateKey);
+        }
+
+        /// <summary>
+        /// Verifizieren der Nachricht
+        /// </summary>
+        /// <param name="inner_envelope">Innere Umschlag</param>
+        /// <param name="publicKey">Öffentlicher Schlüssel</param>
+        /// <returns>true wenn verifizierung erfolgreich, andernfalls false</returns>
+        public static bool verfiyInnerEnvelope(Models.Message inner_envelope, string publicKey)
+        {
+            var pubkey = deserializeRSAKey(publicKey);
+            bool success = false;
+
+            string content = inner_envelope.cipher + inner_envelope.iv
+               + inner_envelope.key_recipient_enc + inner_envelope.sender;
+
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                byte[] signature = Convert.FromBase64String(inner_envelope.sig_recipient);
+
+                byte[] data = Util.GetBytes(content);
+                try
+                {
+                    rsa.ImportParameters(pubkey);
+
+                    success = rsa.VerifyData(data, "SHA256", signature);
+                }
+                catch (CryptographicException e)
+                {
+                    Debug.Fail(e.Message);
+                }
+            }
+            return success;
         }
     }
 }

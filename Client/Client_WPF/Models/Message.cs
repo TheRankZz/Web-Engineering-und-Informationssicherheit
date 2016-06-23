@@ -6,16 +6,17 @@ using System.Threading.Tasks;
 
 namespace Client_WPF.Models
 {
+    [Serializable]
     class Message
     {
-        public string sender { get; set; }
+        public string sender;
 
-        public string cipher { get; set; }
+        public string cipher;
 
-        public string iv { get; set; }
+        public string iv;
 
-        public string key_recipient_enc { get; set; }
+        public string key_recipient_enc;
 
-        public string sig_recipient { get; set; }
+        public string sig_recipient;
     }
 }

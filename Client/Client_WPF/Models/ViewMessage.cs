@@ -8,8 +8,8 @@ namespace Client_WPF.Models
 {
     class ViewMessage
     {
-        public string sender { get; set; }
+        public string sender;
 
-        public string content { get; set; }
+        public string content;
     }
 }

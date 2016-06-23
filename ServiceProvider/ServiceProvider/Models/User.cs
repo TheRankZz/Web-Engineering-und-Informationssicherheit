@@ -7,15 +7,15 @@ namespace ServiceProvider.Models
 {
     public class User
     {
-        public string username { get; set; }
+        public string username;
 
-        public string salt_masterkey { get; set; }
+        public string salt_masterkey;
 
-        public string privkey_enc { get; set; }
+        public string privkey_enc;
 
-        public string pubkey { get; set; }
+        public string pubkey;
 
-        public Message message { get; set; }
+        public Message message;
 
         public void deleteMessage()
         {

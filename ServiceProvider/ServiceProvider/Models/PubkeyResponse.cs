@@ -2,6 +2,6 @@
 {
     public class PubkeyResponse
     {
-        public string pubkey { get; set; }
+        public string pubkey;
     }
 }

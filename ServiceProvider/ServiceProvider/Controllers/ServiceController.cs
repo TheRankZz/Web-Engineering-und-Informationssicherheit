@@ -18,15 +18,6 @@ namespace ServiceProvider.Controllers
 
         public ServiceController()
         {
-            if(!users.ContainsKey("test"))
-            {
-                var test = new User();
-                test.username = "test";
-                test.privkey_enc = "MIIBOQIBAAJAevrrnQhKXR+9ImRgXQuTpO1bkBOqDyHYkq7Ss03IBsi9jDZyOsFlMJ/crMsz4CGCWxp2/rvvBIIpaIutDEcPrQIDAQABAkBlNBCpDaWEtRXEM65JY7mAxAPRsR0FjujW7R9fhubRDUE6mymw8W540k76OoJQjgZ/Biuqi7t+BMk8pC9o7EwBAiEA0Ydq9q26bzVttY+avb3Hppp9s0qDjJLEhzDd9viUr+0CIQCWQXS/yglC1FN5x8KjiUb4kcmeICT9QUQVTyO7v65mwQIgJJTR9fNq41Oerd4+k/X4T3wViiHuSbKuITRE7IOF4hkCIHDshLfXOZqWRJ5TuT5633HU73f9pI8JTAfP0IU8C/CBAiEAhEPvtMRDMsQPfpe/oFlthwnNPgzCucE2x/EeLA70agk=";
-                test.pubkey = "MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAevrrnQhKXR+9ImRgXQuTpO1bkBOqDyHYkq7Ss03IBsi9jDZyOsFlMJ/crMsz4CGCWxp2/rvvBIIpaIutDEcPrQIDAQAB";
-                test.salt_masterkey = "1234567890";
-                users.Add("test", test);
-            }
         }
 
 
@@ -111,6 +102,8 @@ namespace ServiceProvider.Controllers
                         return new HttpResponseMessage(HttpStatusCode.BadRequest);
 
                     //TODO: request.dig_sig
+                    if(!SecurityLogic.verfiyGetMessageRequest(request, u.username, u.pubkey))
+                        return new HttpResponseMessage(HttpStatusCode.BadRequest);
 
                     if (u.message != null)
                     {
@@ -131,7 +124,9 @@ namespace ServiceProvider.Controllers
         {
             if (users.ContainsKey(user))
             {
-                if(users.ContainsKey(request.receiver))
+                User u = users[user];
+
+                if (users.ContainsKey(request.receiver))
                 {
                     //Timestamp prüfen
                     Double unixtimeDouble = Convert.ToDouble(request.timestamp);
@@ -141,6 +136,8 @@ namespace ServiceProvider.Controllers
                         return new HttpResponseMessage(HttpStatusCode.BadRequest);
                     
                     //TODO: request.sig_service
+                    if(!SecurityLogic.verfiyOuterEnvelope(request, u.pubkey))
+                        return new HttpResponseMessage(HttpStatusCode.BadRequest);
 
                     User sender = users[user];
                     User receiver = users[request.receiver];

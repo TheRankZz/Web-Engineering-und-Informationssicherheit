@@ -8,6 +8,6 @@ namespace Client_WPF.Models
 {
     class PubkeyResponse
     {
-        public string pubkey { get; set; }
+        public string pubkey;
     }
 }

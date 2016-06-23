@@ -8,12 +8,12 @@ namespace Client_WPF.Models
 {
     class User
     {
-        public string Username { get; set; }
+        public string Username;
 
-        public byte[] salt_masterkey { get; set; }
+        public byte[] salt_masterkey;
 
-        public string publickey { get; set; }
+        public string publickey;
 
-        public string privatekey { get; set; }
+        public string privatekey;
     }
 }

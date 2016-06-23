@@ -2,7 +2,7 @@
 {
     public class GetMessageRequest
     {
-        public string timestamp { get; set; }
-        public string dig_sig { get; set; }
+        public string timestamp;
+        public string dig_sig;
     }
 }

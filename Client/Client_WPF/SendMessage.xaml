@@ -11,7 +11,7 @@
     <Grid Background="Black">
         <RichTextBox x:Name="txtMessage" HorizontalAlignment="Left" Height="240" Margin="10,100,0,0" VerticalAlignment="Top" Width="505" Background="Black" Foreground="#FFBABABA" SelectionBrush="#FF00AADE" BorderBrush="#FF454545">
         </RichTextBox>
-        <TextBox x:Name="txtReceiver" HorizontalAlignment="Left" Height="23" Margin="44,65,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="471"/>
+        <TextBox x:Name="txtReceiver" HorizontalAlignment="Left" Height="23" Margin="44,65,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="471" Text="Benutzername"/>
         <Button x:Name="btnSend" Content="Senden" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="90,10,0,0" Click="btnSend_Click"/>
         <Label x:Name="label" Content="An:" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.91,4.425" Margin="10,67,0,0"/>
         <Button x:Name="btnBack" Content="Zurück" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="btnBack_Click"/>

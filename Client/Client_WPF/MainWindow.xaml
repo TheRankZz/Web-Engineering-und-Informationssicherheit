@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client_WPF"
         mc:Ignorable="d"
-        Title="ChatClient" Height="390" Width="540" Background="#FF0C0B0B" ResizeMode="NoResize" Icon="chat-speech-bubbles (1).ico">
+        Title="TheRankZz" Height="390" Width="540" Background="#FF0C0B0B" ResizeMode="NoResize" Icon="chat-speech-bubbles (1).ico">
     <Grid Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition Height="71*"/>

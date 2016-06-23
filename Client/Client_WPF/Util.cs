@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Formatting;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -13,7 +15,8 @@ namespace Client_WPF
         public static byte[] GetBytes(string str)
         {
             System.Text.UnicodeEncoding enc = new System.Text.UnicodeEncoding();
-            return enc.GetBytes(str);
+            var result = enc.GetBytes(str);
+            return result;
         }
 
 
@@ -39,6 +42,12 @@ namespace Client_WPF
         {
             var textRange = new TextRange(rtb.Document.ContentStart, rtb.Document.ContentEnd);
             return textRange.Text;
+        }
+
+        public static long UnixTimeNow()
+        {
+            var timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
+            return (long)timeSpan.TotalSeconds;
         }
     }
 }

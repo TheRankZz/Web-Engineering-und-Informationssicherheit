@@ -12,7 +12,7 @@
         <Button x:Name="btnBack" Content="Zurück" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="btnBack_Click"/>
         <Button x:Name="btnGetMessage" Content="Nachricht abrufen" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="146" Click="btnGetMessage_Click"/>
         <Label x:Name="label" Content="Von:" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="txtSender" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" IsReadOnly="True" VerticalAlignment="Top" Width="464" Margin="51,61,0,0"/>
+        <TextBox x:Name="txtSender" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" IsReadOnly="True" VerticalAlignment="Top" Width="464" Margin="51,61,0,0" Text="Benutzername" />
         <RichTextBox x:Name="txtMessage" HorizontalAlignment="Left" Height="240" Margin="10,96,0,0" IsReadOnly="True" VerticalAlignment="Top" Width="505" Background="Black" Foreground="#FFBABABA" SelectionBrush="#FF00AADE" BorderBrush="#FF454545"/>
         <Border BorderBrush="Gray" BorderThickness="1" HorizontalAlignment="Left" Height="1" Margin="5,50,5,0" VerticalAlignment="Top" Width="525"/>
 

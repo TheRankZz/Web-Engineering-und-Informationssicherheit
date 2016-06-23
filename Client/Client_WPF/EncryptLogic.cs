@@ -11,21 +11,22 @@ namespace Client_WPF
     class EncryptLogic
     {
         /// <summary>
-        /// Erzeugt einen Salt für den Masterkey
+        /// Zufalls Salt erzeugen
         /// </summary>
-        /// <returns></returns>
-        public static byte[] createSaltMasterKey()
+        /// <param name="keysize">Salt-Größe</param>
+        /// <returns>Salt</returns>
+        public static byte[] createSalt(int keysize)
         {
             RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
-            byte[] salt_masterkey = new byte[64];
-            rngCsp.GetBytes(salt_masterkey);
-            return salt_masterkey;
+            byte[] salt = new byte[keysize];
+            rngCsp.GetBytes(salt);
+            return salt;
         }
 
         /// <summary>
-        /// MasterKey erstellen
+        /// Masterkey für Benutzer erzeugen
         /// </summary>
-        /// <param name="pwd">Password vom Benutzer</param>
+        /// <param name="pwd">Kennwort vom Benutzer</param>
         /// <param name="salt_masterkey">Salt für den Masterkey</param>
         /// <param name="keysize">Key-Größe</param>
         /// <returns></returns>
@@ -36,7 +37,7 @@ namespace Client_WPF
         }
 
         /// <summary>
-        /// RSA Public- und Privatekey erstellen
+        /// RSA: öffentlicher und privaten Schlüssel erzeugen
         /// </summary>
         /// <param name="privatekey">Privater Schlüssel</param>
         /// <param name="publickey">Öffentlicher Schlüssel</param>
@@ -51,7 +52,6 @@ namespace Client_WPF
             xs1.Serialize(sw1, pubKey);
             publickey = sw1.ToString();
 
-
             //Privatekey in String umwandeln
             var privKey = csp.ExportParameters(true);
             var sw2 = new System.IO.StringWriter();
@@ -61,12 +61,12 @@ namespace Client_WPF
         }
 
         /// <summary>
-        /// Privatekey mit password und masterkey verschlüsseln
+        /// Privater Schlüssel mit AES verschlüsseln
         /// </summary>
-        /// <param name="privkey">Privatekey</param>
-        /// <param name="password">Password vom Benutzer</param>
-        /// <param name="salt_masterkey">Salt für den Masterkey</param>
-        /// <returns>Verschlüsselter PrivateKey</returns>
+        /// <param name="privkey">Privater Schlüssel</param>
+        /// <param name="password">Kennwort vom Benutzer</param>
+        /// <param name="salt_masterkey">Salt</param>
+        /// <returns>Privater Schlüsel(verschlüsselt) in Base64</returns>
         public static string encryptPrivatekey(string privkey, string password, byte[] salt_masterkey)
         {
             byte[] data = Util.GetBytes(privkey);
@@ -96,12 +96,12 @@ namespace Client_WPF
         }
 
         /// <summary>
-        /// Entschlüsseln vom Privatekey
+        /// Privater Schlüssel entschlüsseln
         /// </summary>
-        /// <param name="privkey_enc">PrivateKey verschlüsselt</param>
-        /// <param name="password">Password vom Benutzer</param>
-        /// <param name="salt_masterkey">Salt für den Masterkey</param>
-        /// <returns>Entschlüsselter PrivateKey</returns>
+        /// <param name="privkey_enc">Privater Schlüssel(verschlüsselt)</param>
+        /// <param name="password">Kennwort vom Benutzer</param>
+        /// <param name="salt_masterkey">Salt</param>
+        /// <returns>Privater Schlüssel(entschlüsselt)</returns>
         public static string decryptPrivatekey(string privkey_enc, string password, byte[] salt_masterkey)
         {
             byte[] data = Convert.FromBase64String(privkey_enc);
@@ -127,59 +127,130 @@ namespace Client_WPF
             return Util.GetString(decryptedData);
         }
 
-
-
-
-
-        
         /// <summary>
-        /// 
+        /// RSA-Key deserialisieren
         /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="publickey"></param>
-        /// <returns></returns>
-        public static string encrptMessage(string msg, string publickey)
+        /// <param name="key">Privatekey oder PublicKey</param>
+        /// <returns>RSAParameters</returns>
+        private static RSAParameters deserializeRSAKey(string key)
         {
-            //get a stream from the string
-            var sr = new System.IO.StringReader(publickey);
-            //we need a deserializer
+            var sr = new System.IO.StringReader(key);
             var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
-            //get the object back from the stream
-            var pubKey = (RSAParameters)xs.Deserialize(sr);
-   
-            var csp = new RSACryptoServiceProvider();
-            csp.ImportParameters(pubKey);
- 
-            //for encryption, always handle bytes...
-            var bytesPlainTextData = System.Text.Encoding.Unicode.GetBytes(msg);
-
-            //apply pkcs#1.5 padding and encrypt our data 
-            var bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
-
-            //we might want a string representation of our cypher text... base64 will do
-            string cypherText = Convert.ToBase64String(bytesCypherText);
-            return cypherText;
+            return (RSAParameters)xs.Deserialize(sr);
         }
 
-
-        public static string decryptMessage(string cypher, string privatekey)
+        /// <summary>
+        /// Symmetrischen Schlüssel mit RSA verschlüsseln
+        /// </summary>
+        /// <param name="key">Symmetrischer Schlüssel(klartext) als Bytes</param>
+        /// <param name="publickey">Öffentlicher Schlüssel</param>
+        /// <returns>Symmetrischer Schlüssel (verschlüsselt)</returns>
+        public static byte[] encryptKeyRecipient(byte[] key, string publickey)
         {
-            byte[] bytesCypherText = Convert.FromBase64String(cypher);
+            var pubKey = deserializeRSAKey(publickey);
 
-            var sr = new System.IO.StringReader(privatekey);
-            var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
-            var privKey = (RSAParameters)xs.Deserialize(sr);
+            var csp = new RSACryptoServiceProvider();
+            csp.ImportParameters(pubKey);
+            var key_enc = csp.Encrypt(key, false);
+            return key_enc;
+        }
 
-            //we want to decrypt, therefore we need a csp and load our private key
+        /// <summary>
+        /// Symmetrischen Schlüssel mit RSA entschlüsseln
+        /// </summary>
+        /// <param name="key_recipient_enc">Symmetrischer Schlüssel(verschlüsselt)</param>
+        /// <param name="privatekey">Privater Schlüssel</param>
+        /// <returns>Symmetrischer Schlüssel(entschlüsselt)</returns>
+        public static byte[] decryptKeyRecipient(byte[] key_recipient_enc, string privatekey)
+        {
+            var privKey = deserializeRSAKey(privatekey);
+
             RSACryptoServiceProvider csp = new RSACryptoServiceProvider();
             csp.ImportParameters(privKey);
 
-            //decrypt and strip pkcs#1.5 padding
-            var bytesPlainTextData = csp.Decrypt(bytesCypherText, false);
+            var key_dec = csp.Decrypt(key_recipient_enc, false);
+            return key_dec;
+        }
 
-            //get our original plainText back...
-            string plainTextData = System.Text.Encoding.Unicode.GetString(bytesPlainTextData);
-            return plainTextData;
+        /// <summary>
+        /// Nachricht mit AES verschlüsseln
+        /// </summary>
+        /// <param name="encryptedBytes">Nachricht(klartext)</param>
+        /// <param name="key">Schlüssel</param>
+        /// <param name="IV">Initialisierungsvektor</param>
+        /// <returns>Nachricht(verschlüsselt)</returns>
+        public static string decryptMessage(byte[] encryptedBytes, byte[] key, byte[] IV)
+        {
+            string text_dec = null;
+
+            using (AesManaged aesAlg = new AesManaged())
+            {
+                aesAlg.Key = key;
+                aesAlg.IV = IV;
+
+                ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+
+                using (MemoryStream msDecrypt = new MemoryStream(encryptedBytes))
+                {
+                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                        {
+                            text_dec = srDecrypt.ReadToEnd();
+                        }
+                    }
+                }
+            }
+
+            return text_dec;
+        }
+
+        /// <summary>
+        /// Nachricht mit AES entschlüsseln
+        /// </summary>
+        /// <param name="msg">Nachricht(verschlüsselt)</param>
+        /// <param name="key">Schlüssel</param>
+        /// <param name="IV">Initialisierungsvektor</param>
+        /// <returns>Nachricht(entschlüsselt)</returns>
+        public static byte[] encryptMessage(string msg, byte[] key, byte[] IV)
+        {
+            byte[] encrypted;
+            using (AesManaged aesAlg = new AesManaged())
+            {
+    
+                aesAlg.Key = key;
+                aesAlg.IV = IV;
+
+                ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+                using (MemoryStream msEncrypt = new MemoryStream())
+                {
+                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                        {
+                            swEncrypt.Write(msg);
+                        }
+                        encrypted = msEncrypt.ToArray();
+                    }
+                }
+            }
+
+            return encrypted;
+        }
+
+        /// <summary>
+        /// Schlüssel und Initialisierungsvektor für AES erzeugen
+        /// </summary>
+        /// <param name="key">Schlüssel</param>
+        /// <param name="IV">Initialisierungsvektor</param>
+        public static void createKeyAndIV(out byte[] key, out byte[] IV)
+        {
+            using (AesManaged myAes = new AesManaged())
+            { 
+                key = myAes.Key;
+                IV = myAes.IV;
+            }
         }
     }
 }

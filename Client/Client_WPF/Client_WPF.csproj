@@ -86,11 +86,15 @@
     <Compile Include="Home.xaml.cs">
       <DependentUpon>Home.xaml</DependentUpon>
     </Compile>
+    <Compile Include="HttpClientExtensions.cs" />
+    <Compile Include="Models\GetMessageRequest.cs" />
     <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\PubkeyResponse.cs" />
     <Compile Include="Login.xaml.cs">
       <DependentUpon>Login.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\SendMessageRequest.cs" />
+    <Compile Include="Models\ViewMessage.cs" />
     <Compile Include="SendMessage.xaml.cs">
       <DependentUpon>SendMessage.xaml</DependentUpon>
     </Compile>

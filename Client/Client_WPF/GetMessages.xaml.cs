@@ -33,7 +33,7 @@ namespace Client_WPF
 
         private async void btnGetMessage_Click(object sender, RoutedEventArgs e)
         {
-            Models.Message msg = await BusinessLogic.Instance.getMessage();
+            var msg = await BusinessLogic.Instance.getMessage();
             if(msg != null)
             {
                 txtSender.Text = msg.sender;

@@ -10,30 +10,27 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Documents;
 
-namespace Client_WPF
+namespace Client
 {
     class Util
     {
         public static byte[] GetBytes(string str)
         {
-            System.Text.UnicodeEncoding enc = new System.Text.UnicodeEncoding();
+            var enc = new System.Text.UTF8Encoding();
             var result = enc.GetBytes(str);
             return result;
         }
 
-
         public static string GetString(byte[] bytes)
         {
-            System.Text.UnicodeEncoding enc = new System.Text.UnicodeEncoding();
+            var enc = new System.Text.UTF8Encoding();
             return enc.GetString(bytes);
         }
-
 
         public static string StringToBase64String(string str)
         {
             return Convert.ToBase64String(GetBytes(str));
         }
-
 
         public static string Base64StringToString(string base64)
         {
@@ -52,15 +49,22 @@ namespace Client_WPF
             return (long)timeSpan.TotalSeconds;
         }
 
-
-        public static byte[] ObjectToByteArray(Object obj)
+        public static void Log(int statusCode)
         {
-            if (obj == null)
-                return null;
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
-            bf.Serialize(ms, obj);
-            return ms.ToArray();
+            string msg = "HTTP-Statuscode: " + statusCode;
+            Log(msg);
+        }
+
+        public static void Log(string logMessage)
+        {
+            using (StreamWriter w = File.AppendText("log.txt"))
+            {
+                w.Write("\r\nLog Entry : ");
+                w.WriteLine("{0} {1}", DateTime.Now.ToLongTimeString(),
+                    DateTime.Now.ToLongDateString());
+                w.WriteLine("  :{0}", logMessage);
+                w.WriteLine("-------------------------------");
+            }
         }
 
     }

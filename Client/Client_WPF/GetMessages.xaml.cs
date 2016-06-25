@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Client_WPF
+namespace Client
 {
     /// <summary>
     /// Interaktionslogik für GetMessages.xaml
@@ -41,7 +41,7 @@ namespace Client_WPF
                 txtMessage.Document.Blocks.Add(new Paragraph(new Run(msg.content)));
             } else
             {
-                MessageBox.Show("Es wurde keine Nachricht gefunden.", "Medlung",
+                MessageBox.Show("Es wurde keine Nachricht gefunden.", "Meldung",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }

@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Client_WPF
+namespace Client
 {
     /// <summary>
     /// Interaktionslogik für Home.xaml
@@ -23,7 +23,7 @@ namespace Client_WPF
         public Home()
         {
             InitializeComponent();
-            lblWelcome.Content = "Willkommen " + BusinessLogic.Instance.getUsername() + "!";
+            tbUser.Text = BusinessLogic.Instance.getUsername();
         }
 
         private void btnSendPage_Click(object sender, RoutedEventArgs e)

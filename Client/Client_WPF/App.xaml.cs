@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Client_WPF
+namespace Client
 {
     /// <summary>
     /// Interaktionslogik für "App.xaml"

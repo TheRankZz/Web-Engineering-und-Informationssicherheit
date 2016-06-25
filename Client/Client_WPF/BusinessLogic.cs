@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Client_WPF
+namespace Client
 {
     class BusinessLogic
     {
@@ -20,7 +20,7 @@ namespace Client_WPF
         private BusinessLogic()
         {
             client = new HttpClient();
-            client.BaseAddress = new Uri("http://localhost:50208/");
+            client.BaseAddress = new Uri("http://10.60.70.15/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
@@ -56,24 +56,24 @@ namespace Client_WPF
                 //Das Schlüsselpaar erstellen
                 string publickey = null;
                 string privatekey = null;
-                EncryptLogic.createNewKeyPair(out privatekey, out publickey);
+                EncryptLogic.createRSAKeyPair(out privatekey, out publickey);
 
                 //Den PublicKey in Base64 konventieren
                 request.pubkey = Util.StringToBase64String(publickey);
 
                 //Den PrivateKey verschlüsseln und in Base64 konventieren
-                string encryptedprivkey = EncryptLogic.encryptPrivatekey(privatekey, password, salt_masterkey);
+                string encryptedprivkey = EncryptLogic.toEncryptPrivateKey(privatekey, password, salt_masterkey);
                 request.privkey_enc = encryptedprivkey;
 
                 HttpResponseMessage response = await client.PostAsJsonAsync("/" + username, request);
 
-                if (response.IsSuccessStatusCode)
-                {
+                if (response.IsSuccessStatusCode) {
                     return await login(username, password);
+                } else {
+                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
                 }
-                
             } catch (Exception ex) {
-
+                Util.Log(ex.Message);
             }
             return false;
         }
@@ -89,19 +89,22 @@ namespace Client_WPF
             try
             {
                 HttpResponseMessage response = await client.GetAsync("/" + username);
-                if (response.IsSuccessStatusCode)
-                {
+                if (response.IsSuccessStatusCode) {
                     user = new Models.User();
                     Models.LoginResponse loginresponse = await response.Content.ReadAsAsync<Models.LoginResponse>();
 
                     user.Username = username;
                     user.publickey = Util.Base64StringToString(loginresponse.pubkey);
                     user.salt_masterkey = Convert.FromBase64String(loginresponse.salt_masterkey);
-                    user.privatekey = EncryptLogic.decryptPrivatekey(loginresponse.privkey_enc, password, user.salt_masterkey);
+                    user.privatekey = EncryptLogic.toDecryptPrivateKey(loginresponse.privkey_enc, password, user.salt_masterkey);
 
                     return true;
+                } else {
+                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
                 }
-            } catch(Exception ex) {}
+            } catch(Exception ex) {
+                Util.Log(ex.Message);
+            }
             return false;
         }
 
@@ -136,12 +139,18 @@ namespace Client_WPF
         /// <returns>Öffentlicher Schlüssel</returns>
         private async Task<string> getPublicKeyFromUser(string username)
         {
-            HttpResponseMessage response = await client.GetAsync("/" + username + "/publickey");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                Models.PubkeyResponse pubkeyresponse = await response.Content.ReadAsAsync<Models.PubkeyResponse>();
-                string publickeyfromreceiver = Util.Base64StringToString(pubkeyresponse.pubkey);
-                return publickeyfromreceiver;
+                HttpResponseMessage response = await client.GetAsync("/" + username + "/publickey");
+                if (response.IsSuccessStatusCode) {
+                    Models.PubkeyResponse pubkeyresponse = await response.Content.ReadAsAsync<Models.PubkeyResponse>();
+                    string publickeyfromreceiver = Util.Base64StringToString(pubkeyresponse.pubkey);
+                    return publickeyfromreceiver;
+                } else {
+                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                }
+            } catch (Exception ex) {
+                Util.Log(ex.Message);
             }
             return null;
         }
@@ -154,42 +163,50 @@ namespace Client_WPF
         /// <returns>true wenn erfolgreich, andernfalls false</returns>
         public async Task<bool> sendMessage(string receiver, string msg)
         {
-            //Symmetrischen Schlüssel und IV erzeugen
-            byte[] key_recipient;
-            byte[] iv;
-            EncryptLogic.createKeyAndIV(out key_recipient, out iv);
-
-            //Nachricht mit dem Symmetrischen Schlüssel und IV verschlüsseln. 
-            byte[] msg_enc = EncryptLogic.encryptMessage(msg, key_recipient, iv);
-
-            //PublicKey vom Empfänger holen
-            string pubkey_rcv = await getPublicKeyFromUser(receiver);
-
-            //Symmetrischen Schlüssel mit dem PublicKey vom Empfänger verschlüsseln.
-            byte[] key_recipient_enc = EncryptLogic.encryptKeyRecipient(key_recipient, pubkey_rcv);
-
-
-            Models.Message inner_envelope = new Models.Message();
-            inner_envelope.sender = user.Username;
-            inner_envelope.cipher = Convert.ToBase64String(msg_enc);
-            inner_envelope.iv = Convert.ToBase64String(iv);
-            inner_envelope.key_recipient_enc = Convert.ToBase64String(key_recipient_enc);
-
-            EncryptLogic.signInnerEnvelope(inner_envelope, user.privatekey);
-
-
-            Models.SendMessageRequest request = new Models.SendMessageRequest();
-            request.inner_envelope = inner_envelope;
-            request.receiver = receiver;
-            request.timestamp =Convert.ToString(Util.UnixTimeNow());
-
-            EncryptLogic.signOuterEnvelope(request, user.privatekey);
-
-            HttpResponseMessage response = await client.PostAsJsonAsync("/" + user.Username + "/message", request);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return true;
+                //Symmetrischen Schlüssel und IV erzeugen
+                byte[] key_recipient;
+                byte[] iv;
+                EncryptLogic.createAESKeyAndIV(out key_recipient, out iv);
+
+                //Nachricht mit dem Symmetrischen Schlüssel und IV verschlüsseln. 
+                byte[] msg_enc = EncryptLogic.toEncryptMessage(msg, key_recipient, iv);
+
+                //PublicKey vom Empfänger holen
+                string pubkey_rcv = await getPublicKeyFromUser(receiver);
+
+                //Symmetrischen Schlüssel mit dem PublicKey vom Empfänger verschlüsseln.
+                byte[] key_recipient_enc = EncryptLogic.toEncryptKeyRecipient(key_recipient, pubkey_rcv);
+
+
+                Models.Message inner_envelope = new Models.Message();
+                inner_envelope.sender = user.Username;
+                inner_envelope.cipher = Convert.ToBase64String(msg_enc);
+                inner_envelope.iv = Convert.ToBase64String(iv);
+                inner_envelope.key_recipient_enc = Convert.ToBase64String(key_recipient_enc);
+
+                //Inneren Umschlag signieren
+                EncryptLogic.toSignInnerEnvelope(inner_envelope, user.privatekey);
+
+
+                Models.SendMessageRequest request = new Models.SendMessageRequest();
+                request.inner_envelope = inner_envelope;
+                request.receiver = receiver;
+                request.timestamp = Convert.ToString(Util.UnixTimeNow());
+
+                //Äußeren Umschlag signieren
+                EncryptLogic.toSignOuterEnvelope(request, user.privatekey);
+
+                HttpResponseMessage response = await client.PostAsJsonAsync("/" + user.Username + "/message", request);
+
+                if (response.IsSuccessStatusCode) {
+                    return true;
+                } else {
+                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                }
+            } catch(Exception ex) {
+                Util.Log(ex.Message);
             }
             return false;
         }
@@ -200,42 +217,51 @@ namespace Client_WPF
         /// <returns>Nachricht(ViewMessage)</returns>
         public async Task<Models.ViewMessage> getMessage()
         {
-            var request = new Models.GetMessageRequest();
-            request.timestamp = Convert.ToString(Util.UnixTimeNow());
-
-            EncryptLogic.signGetMessageRequest(request, user.Username, user.privatekey);
-
-
-            HttpResponseMessage response = await client.PatchAsJsonAsync("/" + user.Username + "/message", request);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                Models.Message msg_response = await response.Content.ReadAsAsync<Models.Message>();
+                var request = new Models.GetMessageRequest();
+
+                //Unix-Timestamp erstellen
+                request.timestamp = Convert.ToString(Util.UnixTimeNow());
+
+                //Anfrage signieren
+                EncryptLogic.toSignGetMessageRequest(request, user.Username, user.privatekey);
+
+                HttpResponseMessage response = await client.PatchAsJsonAsync("/" + user.Username + "/message", request);
+                if (response.IsSuccessStatusCode) {
+                    Models.Message msg_response = await response.Content.ReadAsAsync<Models.Message>();
+
+                    //PublicKey vom Absender holen
+                    string publickey = await getPublicKeyFromUser(msg_response.sender);
+                    //Nachricht prüfen
+                    if (!EncryptLogic.verfiyInnerEnvelope(msg_response, publickey))
+                    {
+                        throw new Exception("Die Nachricht ist nicht verifiziert.");
+                    }
+
+                    //Key_recipient_enc(Symmetrischer Schlüssel verschlüsselt) entschlüsseln
+                    byte[] key_recipient_enc = Convert.FromBase64String(msg_response.key_recipient_enc);
+                    byte[] key_recipient = EncryptLogic.toDecryptKeyRecipient(key_recipient_enc, user.privatekey);
+
+                    //IV 
+                    byte[] iv = Convert.FromBase64String(msg_response.iv);
+
+                    //Cipher(verschlüsselte Nachricht) entschlüsseln
+                    byte[] cipher_bytes = Convert.FromBase64String(msg_response.cipher);
+                    string msg_dec = EncryptLogic.toDecryptMessage(cipher_bytes, key_recipient, iv);
 
 
-                string publickey = await getPublicKeyFromUser(msg_response.sender);
-                if (!EncryptLogic.verfiyInnerEnvelope(msg_response, publickey)) {
-                    throw new Exception("Die Nachricht ist nicht verifiziert.");
+                    var vm = new Models.ViewMessage();
+                    vm.sender = msg_response.sender;
+                    vm.content = msg_dec;
+
+                    return vm;
+                } else {
+                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
                 }
-
-                //IV 
-                byte[] iv = Convert.FromBase64String(msg_response.iv);
-                
-                //Key_recipient_enc(Symmetrischer Schlüssel verschlüsselt) entschlüsseln
-                byte[] key_recipient_enc = Convert.FromBase64String(msg_response.key_recipient_enc);
-                byte[] key_recipient = EncryptLogic.decryptKeyRecipient(key_recipient_enc, user.privatekey);
-
-                //Cipher(verschlüsselte Nachricht) entschlüsseln
-                byte[] cipher_bytes = Convert.FromBase64String(msg_response.cipher);
-                string msg_dec = EncryptLogic.decryptMessage(cipher_bytes, key_recipient, iv);
-
-
-                var vm = new Models.ViewMessage();
-                vm.sender = msg_response.sender;
-                vm.content = msg_dec;
-       
-                return vm;
+            } catch (Exception ex) {
+                Util.Log(ex.Message);
             }
-
             return null;
         }
     }

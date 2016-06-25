@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Client_WPF
+namespace Client
 {
     /// <summary>
     /// Interaktionslogik für Page1.xaml
@@ -27,35 +27,80 @@ namespace Client_WPF
 
         private async void btnLogin_Click(object sender, RoutedEventArgs e)
         {
-            bool result = await BusinessLogic.Instance.login(txtUsername.Text, txtPwd.Password);
-            if(result)
+            string username = txtUsername.Text.Trim();
+            string pwd = txtPwd.Password.Trim();
+            if (username != "" && pwd != "" && username != "Benutzername" && pwd != "Password")
             {
-                Home h = new Home();
-                Application.Current.MainWindow.Content = h;
+                bool result = await BusinessLogic.Instance.login(username, pwd);
+                if (result)
+                {
+                    Home h = new Home();
+                    Application.Current.MainWindow.Content = h;
+                }
+                else
+                {
+                    MessageBox.Show("Fehler bei der Anmeldung." + Environment.NewLine
+                        + "Bitte versuchen Sie es erneut!",
+                        "Fehler",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             } else
             {
-                MessageBox.Show("Fehler bei der Anmeldung." + Environment.NewLine
-                    + "Bitte versuchen Sie es erneut!",
-                    "Fehler",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Benutzername oder Kennwort ungültig.", "Fehler",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private async void btnRegister_Click(object sender, RoutedEventArgs e)
         {
-            bool result = await BusinessLogic.Instance.register(txtUsername.Text, txtPwd.Password);
-            if(result)
+            string username = txtUsername.Text.Trim();
+            string pwd = txtPwd.Password.Trim();
+            if (username != "" && pwd != "" && username != "Benutzername" && pwd != "Password")
             {
-                Home h = new Home();
-                Application.Current.MainWindow.Content = h;
+                bool result = await BusinessLogic.Instance.register(username, pwd);
+                if (result)
+                {
+                    Home h = new Home();
+                    Application.Current.MainWindow.Content = h;
+                }
+                else
+                {
+                    MessageBox.Show("Fehler bei der Registrierung." + Environment.NewLine
+                        + "Bitte versuchen Sie es erneut!",
+                        "Fehler",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             } else
             {
-                MessageBox.Show("Fehler bei der Registrierung." + Environment.NewLine 
-                    +"Bitte versuchen Sie es erneut!", 
-                    "Fehler",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Benutzername oder Kennwort ungültig.", "Fehler",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
 
+        private void txtUsername_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if(txtUsername.Text == "Benutzername")
+                txtUsername.Text = "";
+
+        }
+
+        private void txtUsername_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (txtUsername.Text == "")
+                txtUsername.Text = "Benutzername";
+        }
+
+       
+        private void txtPwd_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if(txtPwd.Password == "Password")
+                txtPwd.Password = "";
+        }
+
+        private void txtPwd_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (txtPwd.Password == "")
+                txtPwd.Password = "Password";
         }
     }
 }

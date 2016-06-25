@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client_WPF", "Client_WPF\Client_WPF.csproj", "{C7A7A94D-5F80-4E36-813E-4C7DDA5B0653}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientGrp11", "Client_WPF\ClientGrp11.csproj", "{C7A7A94D-5F80-4E36-813E-4C7DDA5B0653}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

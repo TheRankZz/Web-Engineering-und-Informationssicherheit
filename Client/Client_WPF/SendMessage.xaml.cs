@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Client_WPF
+namespace Client
 {
     /// <summary>
     /// Interaktionslogik für SendMessage.xaml
@@ -34,19 +34,26 @@ namespace Client_WPF
         private async void btnSend_Click(object sender, RoutedEventArgs e)
         {
             string msg = Util.GetString(txtMessage);
-            bool result = await BusinessLogic.Instance.sendMessage(txtReceiver.Text, msg);
-            if(result)
+            if (txtReceiver.Text != "" && msg != "")
             {
-                MessageBox.Show("Nachricht wurde gesendet.", "Meldung",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                bool result = await BusinessLogic.Instance.sendMessage(txtReceiver.Text, msg);
+                if (result)
+                {
+                    MessageBox.Show("Nachricht wurde gesendet.", "Meldung",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
 
-                Home h = new Home();
-                Application.Current.MainWindow.Content = h;
-            }
-            else
+                    Home h = new Home();
+                    Application.Current.MainWindow.Content = h;
+                }
+                else
+                {
+                    MessageBox.Show("Nachricht konnte nicht gesendet werden.", "Fehler",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            } else
             {
-                MessageBox.Show("Nachricht konnte nicht gesendet werden.", "Fehler",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Benutzer und/oder Nachricht ungültig.", "Fehler",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

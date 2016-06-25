@@ -1,6 +1,11 @@
-﻿using System;
+﻿using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Web;
@@ -47,27 +52,36 @@ namespace ServiceProvider
             return verfiyContent(content, signature, publickey);
         }
 
+        /// <summary>
+        /// Öffentlicher Schlüssel aus PEM-String holen
+        /// </summary>
+        /// <param name="publickey">Öffentlicher Schlüssel im PEM-Format</param>
+        /// <returns>AsymmetricKeyParameter</returns>
+        private static AsymmetricKeyParameter getPublicKey(string publickey)
+        {
+            RsaKeyParameters rsaparam;
+            using (var r = new StringReader(publickey))
+            {
+                rsaparam = (RsaKeyParameters)new PemReader(r).ReadObject();
+            }
+            return rsaparam;
+        }
+
+
 
         private static bool verfiyContent(string content, byte[] signature, string publickey)
         {
+            var key = getPublicKey(publickey);
             bool success = false;
-            var pubkey = deserializeRSAKey(Util.Converter.Base64StringToString(publickey));
 
-            using (var rsa = new RSACryptoServiceProvider())
-            {
+            ISigner sig = SignerUtilities.GetSigner("SHA256withRSA");
+            byte[] data = Util.Converter.GetBytes(content);
+            sig.Init(false, key);
+            sig.BlockUpdate(data, 0, data.Length);
 
-                byte[] data = Util.Converter.GetBytes(content);
-                try
-                {
-                    rsa.ImportParameters(pubkey);
+            //Signatur-Bytes prüfen
+            success = sig.VerifySignature(signature);
 
-                    success = rsa.VerifyData(data, "SHA256", signature);
-                }
-                catch (CryptographicException e)
-                {
-                    Debug.Fail(e.Message);
-                }
-            }
             return success;
         }
     }

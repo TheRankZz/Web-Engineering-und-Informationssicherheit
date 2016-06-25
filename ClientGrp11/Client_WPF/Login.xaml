@@ -1,0 +1,20 @@
+﻿<Page x:Class="Client_WPF.Login"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:Client_WPF"
+      mc:Ignorable="d" 
+      d:DesignHeight="300" d:DesignWidth="300"
+      Title="Page1">
+
+    <Grid Background="#FF0A0A0A" Height="280" VerticalAlignment="Center" Width="300" Margin="0,10">
+        <TextBox x:Name="txtUsername" Height="23" Margin="10,90,10,0" TextWrapping="Wrap" Text="Benutzername" VerticalAlignment="Top" ToolTip="Benutzername" GotFocus="txtUsername_GotFocus" LostFocus="txtUsername_LostFocus" />
+        <PasswordBox x:Name="txtPwd" HorizontalAlignment="Left" Height="23"  Margin="10,135,0,0" VerticalAlignment="Top"  Password="Password" ToolTip="Passwort" Width="280" LostFocus="txtPwd_LostFocus" GotFocus="txtPwd_GotFocus" />
+        <Button x:Name="btnLogin" Content="Anmelden" HorizontalAlignment="Left" Margin="10,177,0,0" VerticalAlignment="Top" Width="280" Height="24" Background="{x:Null}" Click="btnLogin_Click"/>
+        <Button x:Name="btnRegister" Content="Registrieren" VerticalAlignment="Top" RenderTransformOrigin="4.98,0.894" Margin="10,235,10,0" Height="24" Background="{x:Null}" Click="btnRegister_Click"/>
+        <TextBlock x:Name="tbWelcome" Text="Web Engineering und Informationssicherheit" TextWrapping="Wrap" VerticalAlignment="Top"  Foreground="#FFBABABA" Margin="30,10,30,0" FontWeight="Bold" FontSize="18.667" HorizontalAlignment="Center"/>
+        <Border BorderBrush="Gray" BorderThickness="1" HorizontalAlignment="Left" Height="1" Margin="10,221,0,0" VerticalAlignment="Top" Width="280"/>
+        <TextBlock x:Name="textBlock" HorizontalAlignment="Center"  TextWrapping="Wrap" Text="Gruppe 1" Foreground="#FFBABABA" VerticalAlignment="Top" Margin="125,62,125,0"/>
+    </Grid>
+</Page>

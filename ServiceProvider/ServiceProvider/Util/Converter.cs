@@ -16,14 +16,14 @@ namespace ServiceProvider.Util
 
         public static byte[] GetBytes(string str)
         {
-            System.Text.UnicodeEncoding enc = new System.Text.UnicodeEncoding();
+            var enc = new System.Text.UTF8Encoding();
             var result = enc.GetBytes(str);
             return result;
         }
 
         public static string GetString(byte[] bytes)
         {
-            System.Text.UnicodeEncoding enc = new System.Text.UnicodeEncoding();
+            var enc = new System.Text.UTF8Encoding();
             return enc.GetString(bytes);
         }
 

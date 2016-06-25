@@ -6,30 +6,26 @@ using System.Net.Http;
 using System.Web.Http;
 using ServiceProvider.Models;
 using System.Web.Http.Description;
+using ServiceProvider.DAO;
 
 namespace ServiceProvider.Controllers
 {
     public class ServiceController : ApiController, Models.IService 
     {
-       
-        static Dictionary<string, User> users =
-            new Dictionary<string, User>();
-
 
         public ServiceController()
         {
         }
-
 
         [Route("{user}")]
         [HttpGet]
         [ResponseType(typeof(User))]
         public HttpResponseMessage login(string user)
         {
-            if(users.ContainsKey(user))
+            var u = UserDAO.Instance.findByUsername(user);
+          
+            if (u != null)
             {
-                User u = users[user];
-
                 LoginResponse response = new LoginResponse();
                 response.privkey_enc = u.privkey_enc;
                 response.pubkey = u.pubkey;
@@ -46,7 +42,7 @@ namespace ServiceProvider.Controllers
         [HttpPost]
         public HttpResponseMessage register(string user, [FromBody]RegisterRequest request)
         {
-            if(!users.ContainsKey(user))
+            if(!UserDAO.Instance.isExists(user))
             {
                 User newuser = new Models.User();
                 newuser.username = user;
@@ -54,9 +50,10 @@ namespace ServiceProvider.Controllers
                 newuser.salt_masterkey = request.salt_masterkey;
                 newuser.pubkey = request.pubkey;
 
-                users.Add(user, newuser);
-
-                return Request.CreateResponse(HttpStatusCode.OK);
+                if(UserDAO.Instance.insert(newuser))
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK);
+                }
             }
 
             return new HttpResponseMessage(HttpStatusCode.BadRequest);
@@ -68,9 +65,9 @@ namespace ServiceProvider.Controllers
         [ResponseType(typeof(PubkeyResponse))]
         public HttpResponseMessage getPubkey(string user)
         {
-            if (users.ContainsKey(user))
+            if (UserDAO.Instance.isExists(user))
             {
-                User u = users[user];
+                User u = UserDAO.Instance.findByUsername(user);
 
                 PubkeyResponse response = new PubkeyResponse();
                 response.pubkey = u.pubkey;
@@ -84,14 +81,14 @@ namespace ServiceProvider.Controllers
 
         [Route("{user}/message")]
         [HttpPatch]
-        [ResponseType(typeof(Message))]
+        [ResponseType(typeof(MessageResponse))]
         public HttpResponseMessage getMessage(string user, [FromBody]GetMessageRequest request)
         {
-            if (users.ContainsKey(user))
+            if (UserDAO.Instance.isExists(user))
             {
-                User u = users[user];
+                User u = UserDAO.Instance.findByUsername(user);
 
-                if (u.message != null)
+                if (u.messages.Count != 0)
                 {
                     //Timestamp prüfen
                     Double unixtimeDouble = Convert.ToDouble(request.timestamp);
@@ -101,16 +98,24 @@ namespace ServiceProvider.Controllers
                     if (DateTime.Now > timestamp)
                         return new HttpResponseMessage(HttpStatusCode.BadRequest);
 
-                    //TODO: request.dig_sig
-                    if(!SecurityLogic.verfiyGetMessageRequest(request, u.username, u.pubkey))
+                    ////TODO: request.dig_sig
+                    string publickey = Util.Converter.Base64StringToString(u.pubkey);
+                    if (!SecurityLogic.verfiyGetMessageRequest(request, u.username, publickey))
                         return new HttpResponseMessage(HttpStatusCode.BadRequest);
 
-                    if (u.message != null)
+                    var msg = UserDAO.Instance.getFirstMessage(u);
+                    if (msg != null)
                     {
-                        Message msg = u.message;
-                        u.deleteMessage();
+                        MessageResponse msg_r = new MessageResponse();
+                        msg_r.cipher = msg.cipher;
+                        msg_r.iv = msg.iv;
+                        msg_r.key_recipient_enc = msg.key_recipient_enc;
+                        msg_r.sender = msg.sender;
+                        msg_r.sig_recipient = msg.sig_recipient;
 
-                        return Request.CreateResponse(HttpStatusCode.OK, msg);
+                        UserDAO.Instance.removeMessage(u, msg);
+
+                        return Request.CreateResponse(HttpStatusCode.OK, msg_r);
                     }
                 }
             }
@@ -122,25 +127,29 @@ namespace ServiceProvider.Controllers
         [HttpPost]
         public HttpResponseMessage sendMessage(string user, [FromBody]SendMessageRequest request)
         {
-            if (users.ContainsKey(user))
+            if (UserDAO.Instance.isExists(user))
             {
-                User u = users[user];
+                User u = UserDAO.Instance.findByUsername(user);
 
-                if (users.ContainsKey(request.receiver))
+                if (UserDAO.Instance.isExists(request.receiver))
                 {
                     //Timestamp prüfen
                     Double unixtimeDouble = Convert.ToDouble(request.timestamp);
                     DateTime timestamp = Util.Converter.UnixTimeStampToDateTime(unixtimeDouble)
                         .AddMinutes(5);
-                    if(DateTime.Now > timestamp)
-                        return new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    
-                    //TODO: request.sig_service
-                    if(!SecurityLogic.verfiyOuterEnvelope(request, u.pubkey))
+
+
+                    if (DateTime.Now > timestamp)
                         return new HttpResponseMessage(HttpStatusCode.BadRequest);
 
-                    User sender = users[user];
-                    User receiver = users[request.receiver];
+                    //TODO: request.sig_service
+
+                    string publickey = Util.Converter.Base64StringToString(u.pubkey);
+                    if (!SecurityLogic.verfiyOuterEnvelope(request, publickey))
+                        return new HttpResponseMessage(HttpStatusCode.BadRequest);
+
+                    User sender = UserDAO.Instance.findByUsername(user);
+                    User receiver = UserDAO.Instance.findByUsername(request.receiver);
 
                     Message msg = new Message();
                     msg.cipher = request.inner_envelope.cipher;
@@ -149,7 +158,8 @@ namespace ServiceProvider.Controllers
                     msg.sig_recipient = request.inner_envelope.sig_recipient;
                     msg.sender = user;
 
-                    receiver.message = msg;
+
+                    UserDAO.Instance.addMessage(receiver, msg);
 
                     return new HttpResponseMessage(HttpStatusCode.OK);
                 }
@@ -162,9 +172,9 @@ namespace ServiceProvider.Controllers
         [HttpDelete]
         public HttpResponseMessage deleteUser(string user)
         {
-            if(users.ContainsKey(user))
+            if(UserDAO.Instance.isExists(user))
             {
-                users.Remove(user);
+                UserDAO.Instance.delete(user);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
 

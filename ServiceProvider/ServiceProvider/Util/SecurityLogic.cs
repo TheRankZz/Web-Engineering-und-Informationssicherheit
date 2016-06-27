@@ -12,26 +12,21 @@ using System.Web;
 
 namespace ServiceProvider
 {
-    public class SecurityLogic
+    public class VerifyLogic
     {
         /// <summary>
-        /// RSA-Key deserialisieren
+        /// Verifizieren der GetMessage-Anfrage
         /// </summary>
-        /// <param name="key">Privatekey oder PublicKey</param>
-        /// <returns>RSAParameters</returns>
-        private static RSAParameters deserializeRSAKey(string key)
+        /// <param name="timestamp">Timestamp</param>
+        /// <param name="username">Benutzername</param>
+        /// <param name="dig_sig">Signatur</param>
+        /// <param name="publickey">Öffentlicher Schlüssel</param>
+        /// <returns>true wenn verifizierung erfolgreich, andernfalls false</returns>
+        public static bool verifyGetMessageRequest(string timestamp, string username, string dig_sig, string publickey)
         {
-            var sr = new System.IO.StringReader(key);
-            var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
-            return (RSAParameters)xs.Deserialize(sr);
-        }
-
-        public static bool verfiyGetMessageRequest(Models.GetMessageRequest request, string username, string publickey)
-        {
-            string content = username + request.timestamp;
-            byte[] signature = Convert.FromBase64String(request.dig_sig);
-
-            return verfiyContent(content, signature, publickey);
+            string content = username + timestamp;
+            byte[] signature = Convert.FromBase64String(dig_sig);
+            return verifyContent(content, signature, publickey);
         }
 
         /// <summary>
@@ -40,16 +35,14 @@ namespace ServiceProvider
         /// <param name="outer_envelope">Äußer Umschlag</param>
         /// <param name="publicKey">Öffentlicher Schlüssel</param>
         /// <returns>true wenn verifizierung erfolgreich, andernfalls false</returns>
-        public static bool verfiyOuterEnvelope(Models.SendMessageRequest outer_envelope, string publickey)
+        public static bool verifyOuterEnvelope(Models.MessageResponse envelope, string timestamp, string receiver, string sig_service, string publickey)
         {
-            string content_inner = outer_envelope.inner_envelope.cipher + outer_envelope.inner_envelope.iv
-                + outer_envelope.inner_envelope.key_recipient_enc + outer_envelope.inner_envelope.sender;
+            string content = envelope.sender + envelope.cipher + envelope.iv + envelope.key_recipient_enc 
+                + envelope.sig_recipient + timestamp + receiver;
 
-            string content = content_inner + outer_envelope.timestamp + outer_envelope.receiver;
+            byte[] signature = Convert.FromBase64String(sig_service);
 
-            byte[] signature = Convert.FromBase64String(outer_envelope.sig_service);
-
-            return verfiyContent(content, signature, publickey);
+            return verifyContent(content, signature, publickey);
         }
 
         /// <summary>
@@ -68,8 +61,14 @@ namespace ServiceProvider
         }
 
 
-
-        private static bool verfiyContent(string content, byte[] signature, string publickey)
+        /// <summary>
+        /// Inhalt mit Signatur prüfen
+        /// </summary>
+        /// <param name="content">Inhalt</param>
+        /// <param name="signature">Signatur</param>
+        /// <param name="publickey">Öffentlicher Schlüssel</param>
+        /// <returns>true wenn die Prüfung erfolgreich war, andernfalls false</returns>
+        private static bool verifyContent(string content, byte[] signature, string publickey)
         {
             var key = getPublicKey(publickey);
             bool success = false;

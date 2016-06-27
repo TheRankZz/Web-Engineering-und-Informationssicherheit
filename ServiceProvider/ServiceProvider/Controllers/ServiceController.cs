@@ -98,11 +98,12 @@ namespace ServiceProvider.Controllers
                     if (DateTime.Now > timestamp)
                         return new HttpResponseMessage(HttpStatusCode.BadRequest);
 
-                    ////TODO: request.dig_sig
+                    //Inhalt der Anfrage gegen die Signatur prüfen
                     string publickey = Util.Converter.Base64StringToString(u.pubkey);
-                    if (!SecurityLogic.verfiyGetMessageRequest(request, u.username, publickey))
+                    if (!VerifyLogic.verifyGetMessageRequest(request.timestamp, u.username, request.dig_sig, publickey))
                         return new HttpResponseMessage(HttpStatusCode.BadRequest);
-
+                    
+                    //Die erste Nachricht holen
                     var msg = UserDAO.Instance.getFirstMessage(u);
                     if (msg != null)
                     {
@@ -138,14 +139,13 @@ namespace ServiceProvider.Controllers
                     DateTime timestamp = Util.Converter.UnixTimeStampToDateTime(unixtimeDouble)
                         .AddMinutes(5);
 
-
+                    //Timestamp prüfen
                     if (DateTime.Now > timestamp)
                         return new HttpResponseMessage(HttpStatusCode.BadRequest);
 
-                    //TODO: request.sig_service
-
+                    //Inhalt mit der Signatur prüfen
                     string publickey = Util.Converter.Base64StringToString(u.pubkey);
-                    if (!SecurityLogic.verfiyOuterEnvelope(request, publickey))
+                    if (!VerifyLogic.verifyOuterEnvelope(request.inner_envelope, request.timestamp, request.receiver, request.sig_service, publickey))
                         return new HttpResponseMessage(HttpStatusCode.BadRequest);
 
                     User sender = UserDAO.Instance.findByUsername(user);
@@ -157,7 +157,6 @@ namespace ServiceProvider.Controllers
                     msg.key_recipient_enc = request.inner_envelope.key_recipient_enc;
                     msg.sig_recipient = request.inner_envelope.sig_recipient;
                     msg.sender = user;
-
 
                     UserDAO.Instance.addMessage(receiver, msg);
 

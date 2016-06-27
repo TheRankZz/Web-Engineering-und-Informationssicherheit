@@ -59,10 +59,9 @@ namespace Client
         {
             using (StreamWriter w = File.AppendText("log.txt"))
             {
-                w.Write("\r\nLog Entry : ");
-                w.WriteLine("{0} {1}", DateTime.Now.ToLongTimeString(),
-                    DateTime.Now.ToLongDateString());
-                w.WriteLine("  :{0}", logMessage);
+                w.Write("\r\nFehler: ");
+                w.WriteLine("{0} {1}", DateTime.Now.ToLongTimeString(), DateTime.Now.ToLongDateString());
+                w.WriteLine("{0}", logMessage);
                 w.WriteLine("-------------------------------");
             }
         }

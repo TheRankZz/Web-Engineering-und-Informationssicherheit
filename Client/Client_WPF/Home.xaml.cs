@@ -44,5 +44,18 @@ namespace Client
             Login l = new Login();
             Application.Current.MainWindow.Content = l;
         }
+
+        private async void btnDeleteUser_Click(object sender, RoutedEventArgs e)
+        {
+            bool result = await BusinessLogic.Instance.deleteUser();
+            if(result) {
+                Login l = new Login();
+                Application.Current.MainWindow.Content = l;
+            } else
+            {
+                MessageBox.Show("Konto konnte nicht gelöscht werden.", "Fehler",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
 }

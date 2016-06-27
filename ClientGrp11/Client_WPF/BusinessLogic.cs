@@ -72,7 +72,9 @@ namespace Client_WPF
                 if(response.IsSuccessStatusCode) {
                     return await login(username, password);
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode );
+                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
             } catch (Exception ex) {
                 Util.Log(ex.Message);
@@ -105,7 +107,9 @@ namespace Client_WPF
 
                     return true;
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
             } catch(Exception ex) {
                 Util.Log(ex.Message);
@@ -153,7 +157,9 @@ namespace Client_WPF
 
                     return publickeyfromreceiver;
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
 
             } catch (Exception ex) {
@@ -196,8 +202,7 @@ namespace Client_WPF
                 inner_envelope.key_recipient_enc = Convert.ToBase64String(key_recipient_enc);
 
                 //Inneren Umschlag signieren
-                EncryptLogic.toSignInnerEnvelope(inner_envelope, user.privatekey);
-
+                inner_envelope.sig_recipient =  EncryptLogic.createSignInnerEnvelope(inner_envelope, user.privatekey);
 
                 Models.SendMessageRequest request = new Models.SendMessageRequest();
                 request.envelope = inner_envelope;
@@ -205,13 +210,15 @@ namespace Client_WPF
                 request.timestamp = Convert.ToString(Util.UnixTimeNow());
 
                 //Äußeren Umschlag signieren
-                EncryptLogic.toSignOuterEnvelope(request, user.privatekey);
+                request.sig_service = EncryptLogic.createSignOuterEnvelope(inner_envelope, request.timestamp, request.recipient, user.privatekey);
 
                 HttpResponseMessage response = await client.PostAsJsonAsync(usernameBase64 + "/message", request);
                 if (response.IsSuccessStatusCode) {
                     return true;
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
             } catch (Exception ex) {
                 Util.Log(ex.Message);
@@ -234,7 +241,7 @@ namespace Client_WPF
                 request.timestamp = Convert.ToString(Util.UnixTimeNow());
 
                 //Anfrage signieren
-                EncryptLogic.toSignGetMessageRequest(request, user.Username, user.privatekey);
+                request.sig_utime = EncryptLogic.createSignGetMessageRequest(request.timestamp, user.Username, user.privatekey);
 
                 string url = String.Format(usernameBase64 + "/messages?timestamp={0}&sig_utime={0}", request.timestamp, request.sig_utime);
                 HttpResponseMessage response = await client.GetAsync(url);
@@ -260,14 +267,15 @@ namespace Client_WPF
                     byte[] cipher_bytes = Convert.FromBase64String(content.cipher);
                     string msg_dec = EncryptLogic.toDecryptMessage(cipher_bytes, key_recipient, iv);
 
-
                     var vm = new Models.ViewMessage();
                     vm.sender = content.sender;
                     vm.content = msg_dec;
 
                     return vm;
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
             } catch (Exception ex) {
                 Util.Log(ex.Message);

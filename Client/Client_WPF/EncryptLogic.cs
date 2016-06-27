@@ -290,16 +290,15 @@ namespace Client
         /// <param name="content">Inhalt</param>
         /// <param name="privateKey">Privater Schlüssel</param>
         /// <returns>Signatur(base64)</returns>
-        private static string toSign(string content, string privateKey)
+        private static string createSign(string content, string privateKey)
         {
-            var key = getPrivateKey(privateKey);
+            var privKey = getPrivateKey(privateKey);
 
             ISigner sig = SignerUtilities.GetSigner("SHA256withRSA");
-            sig.Init(true, key);
+
+            sig.Init(true, privKey);
             byte[] data = Util.GetBytes(content);
             sig.BlockUpdate(data, 0, data.Length);
-
-            //Signatur-Bytes erzeugen
             byte[] signedBytes = sig.GenerateSignature();
 
             return Convert.ToBase64String(signedBytes);
@@ -310,12 +309,10 @@ namespace Client
         /// </summary>
         /// <param name="inner_envelope">Innere Umschlag</param>
         /// <param name="privateKey">Privater Schlüssel</param>
-        public static void toSignInnerEnvelope(Models.Message inner_envelope, string privateKey)
+        public static string createSignInnerEnvelope(Models.Message envelope, string privateKey)
         {
-            string content = inner_envelope.cipher + inner_envelope.iv
-                + inner_envelope.key_recipient_enc + inner_envelope.sender;
-
-            inner_envelope.sig_recipient = toSign(content, privateKey);
+            string content = envelope.sender + envelope.cipher + envelope.iv + envelope.key_recipient_enc;
+            return createSign(content, privateKey);
         }
 
         /// <summary>
@@ -323,14 +320,10 @@ namespace Client
         /// </summary>
         /// <param name="outer_envelope">äußer Umschlag</param>
         /// <param name="privateKey">Privater Schlüssel</param>
-        public static void toSignOuterEnvelope(Models.SendMessageRequest outer_envelope, string privateKey)
+        public static string createSignOuterEnvelope(Models.Message envelope, string timestamp, string receiver, string privateKey)
         {
-            string content_inner = outer_envelope.inner_envelope.cipher + outer_envelope.inner_envelope.iv
-                + outer_envelope.inner_envelope.key_recipient_enc + outer_envelope.inner_envelope.sender;
-
-            string content = content_inner + outer_envelope.timestamp + outer_envelope.receiver;
-
-            outer_envelope.sig_service = toSign(content, privateKey);
+            string content = envelope.sender + envelope.cipher + envelope.iv + envelope.key_recipient_enc + envelope.sig_recipient + timestamp + receiver;
+            return createSign(content, privateKey);
         }
 
         /// <summary>
@@ -339,10 +332,10 @@ namespace Client
         /// <param name="request">Anfrage</param>
         /// <param name="username">Benutzername</param>
         /// <param name="privateKey">Privater Schlüssel</param>
-        public static void toSignGetMessageRequest(Models.GetMessageRequest request, string username, string privateKey)
+        public static string createSignGetMessageRequest(string timestamp, string username, string privateKey)
         {
-            string content = username + request.timestamp;
-            request.dig_sig = toSign(content, privateKey);
+            string content = username + timestamp;
+            return createSign(content, privateKey);
         }
 
         /// <summary>
@@ -351,23 +344,20 @@ namespace Client
         /// <param name="inner_envelope">Innere Umschlag</param>
         /// <param name="publicKey">Öffentlicher Schlüssel</param>
         /// <returns>true wenn verifizierung erfolgreich, andernfalls false</returns>
-        public static bool verfiyInnerEnvelope(Models.Message inner_envelope, string publicKey)
+        public static bool verfiyInnerEnvelope(Models.Message envelope, string publicKey)
         {
-            var key = getPublicKey(publicKey);
+            var pubkey = getPublicKey(publicKey);
             bool success = false;
 
-            string content = inner_envelope.cipher + inner_envelope.iv
-               + inner_envelope.key_recipient_enc + inner_envelope.sender;
+            string content = envelope.sender + envelope.cipher + envelope.iv + envelope.key_recipient_enc;
 
-            ISigner sig = SignerUtilities.GetSigner("SHA256withRSA");
+            ISigner signer = SignerUtilities.GetSigner("SHA256withRSA");
             byte[] data = Util.GetBytes(content);
-            sig.Init(false, key);
-            sig.BlockUpdate(data, 0, data.Length);
 
-            byte[] signature = Convert.FromBase64String(inner_envelope.sig_recipient);
-
-            //Signatur-Bytes prüfen
-            success = sig.VerifySignature(signature);
+            signer.Init(false, pubkey);
+            signer.BlockUpdate(data, 0, data.Length);
+            byte[] signature = Convert.FromBase64String(envelope.sig_recipient);
+            success = signer.VerifySignature(signature);
             return success;
         }
     }

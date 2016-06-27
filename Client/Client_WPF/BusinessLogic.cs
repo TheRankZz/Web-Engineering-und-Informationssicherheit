@@ -29,7 +29,7 @@ namespace Client
         {
             get
             {
-                if(instance == null)
+                if (instance == null)
                 {
                     instance = new BusinessLogic();
                 }
@@ -70,7 +70,9 @@ namespace Client
                 if (response.IsSuccessStatusCode) {
                     return await login(username, password);
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                    throw new HttpRequestException("URL:" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
             } catch (Exception ex) {
                 Util.Log(ex.Message);
@@ -100,9 +102,11 @@ namespace Client
 
                     return true;
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                    throw new HttpRequestException("URL:" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 Util.Log(ex.Message);
             }
             return false;
@@ -113,7 +117,7 @@ namespace Client
         /// </summary>
         public void logout()
         {
-            if(this.user != null)
+            if (this.user != null)
             {
                 user = null;
             }
@@ -125,12 +129,37 @@ namespace Client
         /// <returns></returns>
         public string getUsername()
         {
-            if(this.user != null)
+            if (this.user != null)
             {
                 return user.Username;
             }
             return null;
         }
+
+        /// <summary>
+        /// Benutzer löschen
+        /// </summary>
+        /// <param name="username">Benutzername</param>
+        /// <returns></returns>
+        public async Task<bool> deleteUser()
+        {
+            try
+            {
+                HttpResponseMessage response = await client.DeleteAsync("/" + user.Username);
+                if (response.IsSuccessStatusCode){
+                    user = null;
+                    return true;
+                } else {
+                    throw new HttpRequestException("URL:" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
+                }
+            } catch (Exception ex) {
+                Util.Log(ex.Message);
+            }
+            return false;
+        }
+       
 
         /// <summary>
         /// Öffentlicher Schlüssel vom Benutzer holen
@@ -147,7 +176,9 @@ namespace Client
                     string publickeyfromreceiver = Util.Base64StringToString(pubkeyresponse.pubkey);
                     return publickeyfromreceiver;
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                    throw new HttpRequestException("URL:" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
             } catch (Exception ex) {
                 Util.Log(ex.Message);
@@ -187,7 +218,7 @@ namespace Client
                 inner_envelope.key_recipient_enc = Convert.ToBase64String(key_recipient_enc);
 
                 //Inneren Umschlag signieren
-                EncryptLogic.toSignInnerEnvelope(inner_envelope, user.privatekey);
+                inner_envelope.sig_recipient = EncryptLogic.createSignInnerEnvelope(inner_envelope, user.privatekey);
 
 
                 Models.SendMessageRequest request = new Models.SendMessageRequest();
@@ -196,14 +227,16 @@ namespace Client
                 request.timestamp = Convert.ToString(Util.UnixTimeNow());
 
                 //Äußeren Umschlag signieren
-                EncryptLogic.toSignOuterEnvelope(request, user.privatekey);
+                request.sig_service = EncryptLogic.createSignOuterEnvelope(inner_envelope, request.timestamp, request.receiver, user.privatekey);
 
                 HttpResponseMessage response = await client.PostAsJsonAsync("/" + user.Username + "/message", request);
 
                 if (response.IsSuccessStatusCode) {
                     return true;
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                    throw new HttpRequestException("URL:" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
             } catch(Exception ex) {
                 Util.Log(ex.Message);
@@ -225,7 +258,7 @@ namespace Client
                 request.timestamp = Convert.ToString(Util.UnixTimeNow());
 
                 //Anfrage signieren
-                EncryptLogic.toSignGetMessageRequest(request, user.Username, user.privatekey);
+                request.dig_sig = EncryptLogic.createSignGetMessageRequest(request.timestamp, user.Username, user.privatekey);
 
                 HttpResponseMessage response = await client.PatchAsJsonAsync("/" + user.Username + "/message", request);
                 if (response.IsSuccessStatusCode) {
@@ -257,7 +290,9 @@ namespace Client
 
                     return vm;
                 } else {
-                    throw new HttpRequestException("HTTP-Statuscode: " + response.StatusCode);
+                    throw new HttpRequestException("URL:" + response.RequestMessage.RequestUri.AbsolutePath
+                        + Environment.NewLine +
+                        "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
             } catch (Exception ex) {
                 Util.Log(ex.Message);

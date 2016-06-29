@@ -41,7 +41,7 @@ namespace Client_WPF
                 txtMessage.Document.Blocks.Add(new Paragraph(new Run(msg.content)));
             } else
             {
-                MessageBox.Show("Es wurde keine Nachricht gefunden.", "Medlung",
+                MessageBox.Show("Es wurde keine Nachricht gefunden.", "Meldung",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }

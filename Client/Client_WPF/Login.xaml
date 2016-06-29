@@ -15,6 +15,8 @@
         <Button x:Name="btnRegister" Content="Registrieren" VerticalAlignment="Top" RenderTransformOrigin="4.98,0.894" Margin="10,235,10,0" Height="24" Background="{x:Null}" Click="btnRegister_Click"/>
         <TextBlock x:Name="tbWelcome" Text="Web Engineering und Informationssicherheit" TextWrapping="Wrap" VerticalAlignment="Top"  Foreground="#FFBABABA" Margin="30,10,30,0" FontWeight="Bold" FontSize="18.667" HorizontalAlignment="Center"/>
         <Border BorderBrush="Gray" BorderThickness="1" HorizontalAlignment="Left" Height="1" Margin="10,221,0,0" VerticalAlignment="Top" Width="280"/>
-        <TextBlock x:Name="textBlock" HorizontalAlignment="Center"  TextWrapping="Wrap" Text="Gruppe 1" Foreground="#FFBABABA" VerticalAlignment="Top" Margin="125,62,125,0"/>
+        <Label Height="28"  Margin="117,57,117,0" Name="label1" Foreground="#FFBABABA" VerticalAlignment="Top">
+            <Hyperlink Foreground="#FFBABABA" Click="Hyperlink_Click">Gruppe 1</Hyperlink>
+        </Label>
     </Grid>
 </Page>

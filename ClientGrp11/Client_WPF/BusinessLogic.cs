@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows;
 
 namespace Client_WPF
@@ -72,7 +73,8 @@ namespace Client_WPF
                 if(response.IsSuccessStatusCode) {
                     return await login(username, password);
                 } else {
-                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                    throw new HttpRequestException(response.RequestMessage.Method + ":" 
+                        + response.RequestMessage.RequestUri.AbsolutePath
                         + Environment.NewLine +
                         "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
@@ -107,7 +109,8 @@ namespace Client_WPF
 
                     return true;
                 } else {
-                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                    throw new HttpRequestException(response.RequestMessage.Method + ":" 
+                        + response.RequestMessage.RequestUri.AbsolutePath
                         + Environment.NewLine +
                         "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
@@ -157,7 +160,8 @@ namespace Client_WPF
 
                     return publickeyfromreceiver;
                 } else {
-                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                    throw new HttpRequestException(response.RequestMessage.Method + ":" 
+                        + response.RequestMessage.RequestUri.AbsolutePath
                         + Environment.NewLine +
                         "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
@@ -216,7 +220,8 @@ namespace Client_WPF
                 if (response.IsSuccessStatusCode) {
                     return true;
                 } else {
-                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                    throw new HttpRequestException(response.RequestMessage.Method + ":" 
+                        + response.RequestMessage.RequestUri.AbsolutePath
                         + Environment.NewLine +
                         "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }
@@ -243,7 +248,8 @@ namespace Client_WPF
                 //Anfrage signieren
                 request.sig_utime = EncryptLogic.createSignGetMessageRequest(request.timestamp, user.Username, user.privatekey);
 
-                string url = String.Format(usernameBase64 + "/messages?timestamp={0}&sig_utime={0}", request.timestamp, request.sig_utime);
+                string url = String.Format(usernameBase64 + "/messages?timestamp={0}&sig_utime={1}",
+                    request.timestamp, HttpUtility.UrlEncode(request.sig_utime));
                 HttpResponseMessage response = await client.GetAsync(url);
                 if (response.IsSuccessStatusCode) {
 
@@ -273,7 +279,8 @@ namespace Client_WPF
 
                     return vm;
                 } else {
-                    throw new HttpRequestException(response.RequestMessage.Method + ":" + response.RequestMessage.RequestUri.AbsolutePath
+                    throw new HttpRequestException(response.RequestMessage.Method + ":"
+                        + response.RequestMessage.RequestUri.AbsolutePath
                         + Environment.NewLine +
                         "HTTP-Statuscode: " + (int)response.StatusCode + " - " + response.StatusCode);
                 }

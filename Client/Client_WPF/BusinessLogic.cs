@@ -10,6 +10,9 @@ using System.Windows;
 
 namespace Client
 {
+    /// <summary>
+    /// 
+    /// </summary>
     class BusinessLogic
     {
         private Models.User user { get; set; }

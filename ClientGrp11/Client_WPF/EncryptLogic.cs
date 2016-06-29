@@ -321,7 +321,8 @@ namespace Client_WPF
         /// <param name="privateKey">Privater Schlüssel</param>
         public static string createSignOuterEnvelope(Models.Message envelope, string timestamp, string recipient, string privateKey)
         {
-            string content = envelope.sender + envelope.cipher + envelope.iv + envelope.key_recipient_enc + envelope.sig_recipient + timestamp + recipient;
+            string content = envelope.sender + envelope.cipher + envelope.iv + envelope.key_recipient_enc
+                + envelope.sig_recipient + timestamp + recipient;
             return createSign(content, privateKey);
         }
 

@@ -104,5 +104,14 @@ namespace Client_WPF
             if (txtPwd.Password == "")
                 txtPwd.Password = "Password";
         }
+
+        private void Hyperlink_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show(("Gruppe 1:" + Environment.NewLine +
+                        "Julia Bracht, Nicolas Burchert" + Environment.NewLine
+                        + "Lennart Giesen und Julius Wessing"), "Info",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+        }
     }
 }

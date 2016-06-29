@@ -5,5 +5,5 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client"
         mc:Ignorable="d"
-        Title="Web Engineering und Informationssicherheit" Height="390" Width="540" Background="#FF0C0B0B" ResizeMode="NoResize" Icon="icon.ico">
+        Title="Web Engineering und Informationssicherheit" Height="390" Width="540" Background="#FF0C0B0B" ResizeMode="NoResize" Icon="chat.ico">
 </Window>

@@ -9,11 +9,12 @@
       Title="GetMessages">
 
     <Grid Background="Black">
-        <Button x:Name="btnBack" Content="Zurück" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="btnBack_Click"/>
-        <Button x:Name="btnGetMessage" Content="Nachricht abrufen" HorizontalAlignment="Left" Margin="369,10,0,0" VerticalAlignment="Top" Width="146" Click="btnGetMessage_Click"/>
-        <Label x:Name="label" Content="Von:" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="txtSender" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" IsReadOnly="True" VerticalAlignment="Top" Width="464" Margin="51,61,0,0" />
-        <RichTextBox x:Name="txtMessage" HorizontalAlignment="Left" Height="240" Margin="51,96,0,0" IsReadOnly="True" VerticalAlignment="Top" Width="464" Background="Black" Foreground="#FFBABABA" SelectionBrush="#FF00AADE" BorderBrush="#FF454545" FontSize="14.667"/>
+        <Button x:Name="btnBack" Content="Zurück" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="100" Click="btnBack_Click"/>
+        <Button x:Name="btnGetMessage" Content="Abrufen" HorizontalAlignment="Left" Margin="415,10,0,0" VerticalAlignment="Top" Width="100" Click="btnGetMessage_Click"/>
+        <Label x:Name="label" Content="Von:" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.91,4.425" Margin="10,56,0,0"/>
+        <TextBox x:Name="txtSender" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" IsReadOnly="True" VerticalAlignment="Top" Width="505" Margin="10,84,0,0" />
+        <RichTextBox x:Name="txtMessage" HorizontalAlignment="Left" Height="194" Margin="10,142,0,0" IsReadOnly="True" VerticalAlignment="Top" Width="505" Background="Black" Foreground="#FFBABABA" SelectionBrush="#FF00AADE" BorderBrush="#FF454545" FontSize="14.667"/>
+        <Label x:Name="label_Copy" Content="Nachricht:" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="0.91,4.425" Margin="10,113,0,0"/>
         <Border BorderBrush="Gray" BorderThickness="1" HorizontalAlignment="Left" Height="1" Margin="5,50,5,0" VerticalAlignment="Top" Width="525"/>
     </Grid>
 </Page>

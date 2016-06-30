@@ -75,9 +75,9 @@ namespace Client_WPF
         }
 
         /// <summary>
-        /// Privater Schlüssel mit AES verschlüsseln
+        /// Privater Schlüssel(PrivateKey) mit AES verschlüsseln
         /// </summary>
-        /// <param name="privkey">Privater Schlüssel</param>
+        /// <param name="privkey">Privater Schlüssel(Klartext)</param>
         /// <param name="password">Kennwort vom Benutzer</param>
         /// <param name="salt_masterkey">Salt</param>
         /// <returns>Privater Schlüsel(verschlüsselt) in Base64</returns>
@@ -110,12 +110,12 @@ namespace Client_WPF
         }
 
         /// <summary>
-        /// Privater Schlüssel mit AES entschlüsseln
+        /// Privater Schlüssel(PrivateKey) mit AES entschlüsseln
         /// </summary>
         /// <param name="privkey_enc">Privater Schlüssel(verschlüsselt)</param>
         /// <param name="password">Kennwort vom Benutzer</param>
         /// <param name="salt_masterkey">Salt</param>
-        /// <returns>Privater Schlüssel(entschlüsselt)</returns>
+        /// <returns>Privater Schlüssel(Klartext)</returns>
         public static string toDecryptPrivateKey(string privkey_enc, string password, byte[] salt_masterkey)
         {
             byte[] data = Convert.FromBase64String(privkey_enc);
@@ -204,12 +204,12 @@ namespace Client_WPF
         }
 
         /// <summary>
-        /// Nachricht mit AES verschlüsseln
+        /// Nachricht mit AES entschlüsseln
         /// </summary>
-        /// <param name="encryptedBytes">Nachricht(klartext)</param>
-        /// <param name="key">Schlüssel</param>
+        /// <param name="encryptedBytes">Nachricht(verschlüsselt)</param>
+        /// <param name="key">Symmetrischer Schlüssel</param>
         /// <param name="IV">Initialisierungsvektor</param>
-        /// <returns>Nachricht(verschlüsselt)</returns>
+        /// <returns>Nachricht(Klartext)</returns>
         public static string toDecryptMessage(byte[] encryptedBytes, byte[] key, byte[] IV)
         {
             string text_dec = null;
@@ -237,12 +237,12 @@ namespace Client_WPF
         }
 
         /// <summary>
-        /// Nachricht mit AES entschlüsseln
+        /// Nachricht mit AES verschlüsseln
         /// </summary>
-        /// <param name="msg">Nachricht(verschlüsselt)</param>
-        /// <param name="key">Schlüssel</param>
+        /// <param name="msg">Nachricht(Klartext)</param>
+        /// <param name="key">Symmetrischer Schlüssel</param>
         /// <param name="IV">Initialisierungsvektor</param>
-        /// <returns>Nachricht(entschlüsselt)</returns>
+        /// <returns>Nachricht(verschlüsselt)</returns>
         public static byte[] toEncryptMessage(string msg, byte[] key, byte[] IV)
         {
             byte[] encrypted;

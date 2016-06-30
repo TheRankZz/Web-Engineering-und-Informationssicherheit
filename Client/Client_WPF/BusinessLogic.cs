@@ -24,6 +24,7 @@ namespace Client
         {
             client = new HttpClient();
             client.BaseAddress = new Uri("http://10.60.70.15/");
+            //client.BaseAddress = new Uri("http://localhost:50208/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }

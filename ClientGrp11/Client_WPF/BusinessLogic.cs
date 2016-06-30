@@ -12,6 +12,9 @@ using System.Windows;
 
 namespace Client_WPF
 {
+    /// <summary>
+    /// Geschäftslogik
+    /// </summary>
     class BusinessLogic
     {
         private Models.User user { get; set; }
@@ -121,7 +124,7 @@ namespace Client_WPF
         }
 
         /// <summary>
-        /// Akutellen Benutzer abmelden
+        /// Aktuellen Benutzer abmelden
         /// </summary>
         public void logout()
         {
@@ -233,7 +236,7 @@ namespace Client_WPF
         }
 
         /// <summary>
-        /// Meine Nachricht holen
+        /// Eine Nachricht holen
         /// </summary>
         /// <returns>Nachricht(ViewMessage)</returns>
         public async Task<Models.ViewMessage> getMessage()

@@ -96,13 +96,13 @@ namespace ServiceProvider.Controllers
                         .AddMinutes(5);
 
                     if (DateTime.Now > timestamp)
-                        return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, "Timestamp ungültig");
 
                     //Inhalt der Anfrage gegen die Signatur prüfen
                     string publickey = Util.Converter.Base64StringToString(u.pubkey);
                     if (!VerifyLogic.verifyGetMessageRequest(request.timestamp, u.username, request.dig_sig, publickey))
-                        return new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, "Signatur ungültig");
+
                     //Die erste Nachricht holen
                     var msg = UserDAO.Instance.getFirstMessage(u);
                     if (msg != null)
@@ -141,12 +141,12 @@ namespace ServiceProvider.Controllers
 
                     //Timestamp prüfen
                     if (DateTime.Now > timestamp)
-                        return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, "Timestamp ungültig");
 
                     //Inhalt mit der Signatur prüfen
                     string publickey = Util.Converter.Base64StringToString(u.pubkey);
                     if (!VerifyLogic.verifyOuterEnvelope(request.inner_envelope, request.timestamp, request.receiver, request.sig_service, publickey))
-                        return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, "Signatur ungültig");
 
                     User sender = UserDAO.Instance.findByUsername(user);
                     User receiver = UserDAO.Instance.findByUsername(request.receiver);
